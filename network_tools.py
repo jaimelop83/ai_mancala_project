@@ -10,7 +10,9 @@ np.random.seed(42)
 def random_board():
     out = np.random.multinomial(48, [1/14.]*14, size=1)[0]
     sum = out.sum()
-    assert sum == 48, f"Error: invalid randomly generated board with {sum=} stones"
+    if sum != 48:
+        print(f"Error: invalid randomly generated board with {sum=} stones. Discarding and trying again.")
+        return random_board()
     #print(f"{out=}")
     return out
 
