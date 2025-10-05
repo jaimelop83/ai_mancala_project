@@ -1,10 +1,9 @@
 """
 Purpose:
-    Give a basic neural network that we could use to solve this problem.
-    I am trying to keep it as simple as possible to run test code and such, but to still be technically viable.
+    A transformer player. Might try tweaking someof the mutable parameters.
     
 Internal layers:
-    1 hidden layer with 16 nodes
+    setup, a single transformer later, and postprocessing.
 """
 
 import torch
