@@ -42,3 +42,4 @@ class TinyTransformerModel(nn.Module):
         x = x.flatten(start_dim=1)
         logits = self.fc_out(x)
         return torch.argmax(logits, dim=1)
+    

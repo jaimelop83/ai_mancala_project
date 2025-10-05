@@ -76,7 +76,9 @@ def survival_of_the_fittest(population, generation_food):
             model2.fitness += scores[1]
             #print_population(old_population)
             continue #TODO need line below, possibly will modification
-            scores = game.play_game(model1, model2, board) #Does not exist. Need something like this to get them to play against each other.
+            game = game(board)
+            game.play_game(model1, model2)
+            scores = game.get_score() #Does not exist. Need something like this to get them to play against each other.
     #print("Population fitness has been updated.")
     #print_population(population)
     return population

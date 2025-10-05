@@ -1,10 +1,13 @@
 # Mancala game logic
 class Mancala:
-    def __init__(self):
+    def __init__(self, board=None):
         # Board layout:
         # Indexes 0–5: Player 1 pits, 6: Player 1 store
         # Indexes 7–12: Player 2 pits, 13: Player 2 store
-        self.board = [4] * 6 + [0] + [4] * 6 + [0]
+        if board != None:
+            self.board = board
+        else:
+            self.board = [4] * 6 + [0] + [4] * 6 + [0]
         self.current_player = 1
 
     def get_legal_moves(self):
@@ -79,6 +82,10 @@ class Mancala:
 
         if self.is_game_over():
             self._sweep_remaining_stones()
+        
+    # model1(board) yields the move model1 chooses. 
+    def play_game(model1, model2):
+        pass
 
     def get_score(self):
         return (self.board[6], self.board[13])
