@@ -23,6 +23,7 @@ class base_single_layer_model(nn.Module):
         self.fc1 = nn.Linear(14, 16) 
         self.fc2 = nn.Linear(16, 6)
 
+
     def forward(self, x):
         x = x.float()
         x = F.relu(self.fc1(x))

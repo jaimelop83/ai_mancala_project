@@ -1,9 +1,7 @@
 from base_single_layer_model import base_single_layer_model
 import torch
 import numpy as np
-
-np.random.seed(42)
-
+import network
 
 #This should probably be moved to the game or board infrastructure
 #Perhaps return a board object, that can convert to torch on its own?
@@ -22,7 +20,6 @@ def run_model_on_random_inputs(model):
         Test a model with random inputs just to make sure it runs.
     """
     #Generate a random instance of model
-    torch.manual_seed(42)
     net = model()
     print(f"{net=}")
 
