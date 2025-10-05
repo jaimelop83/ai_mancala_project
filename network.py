@@ -4,11 +4,27 @@ Purpose:
 """
 
 import torch
+import re
+import subprocess
+import psutil
+
 seed = 49
 torch.manual_seed(seed)
 
+
 #Changing this model will change it everywhere else: nothing should import models directly, use from network import model. 
+"""
+Input layer:
+    Standard 14 nodes, ints in [0,48], representing the board state.
+
+Internal layers:
+    These may vary. 
+
+Output layer:
+    1 value in [0,5] representing the hole to choose.
+"""
 from base_single_layer_model import base_single_layer_model as model
+#from transformer_model import TinyTransformerModel as model
 
 #Hyperparameters
 DEATH_RATE = 0.20 #This percent die every generation
@@ -33,3 +49,26 @@ print(f"\t{POPULATION_SIZE=}")
 print(f"\t{NUMBER_OF_GENERATIONS=}")
 print(f"\t{seed=}")
 
+print("System Info:")
+if torch.cuda.is_available():
+    print("\tCUDA is available. PyTorch can use the GPU.")
+    print(f"\tGPU Name: {torch.cuda.get_device_name(0)}")
+    print(f"\tCurrent device: {torch.cuda.current_device()}")
+    ram = torch.cuda.get_device_properties(0).total_memory
+    print(f"\tAvailable GPU RAM: { ram / 1e9:.2f} GB")
+else:
+    print("\tUsing CPU because CUDA is not available.")
+    try:
+        result = subprocess.run(['wmic', 'path', 'win32_VideoController', 'get', 'name'], capture_output=True, text=True)
+        print("\tA GPU was found but unused: ", end="")
+        print(re.sub(r'\s+', ' ', result.stdout.strip()))
+        ram = psutil.virtual_memory().available
+        print(f"\tAvailable CPU RAM: {ram / 1e9:.2f} GB")
+    except Exception as e:
+        print("Failed to determine if the system has a GPU")
+
+print("Evolution Info:")
+test_model = model()
+model_size = sum(p.numel() * p.element_size() for p in test_model.parameters())
+print(f"\t{model_size=:,} bytes")
+print(f"\tLargest reasonable population is thus: {ram // model_size:,}") #But keep it a good bit smaller! Perhaps max should be 1/2 or 1/3? 
