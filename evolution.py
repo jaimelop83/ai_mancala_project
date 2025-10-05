@@ -6,7 +6,7 @@ from network import model
 import torch
 import random
 from timer import Timer
-import network
+from network import *
 from network_tools import random_board
 
 population_size = 10
@@ -21,12 +21,10 @@ def make_initial_population(pop_size, model_class):
         pop_size: number of models to create
         model_class: the model
     Output:
-        A dictionary:
-            keys: model instances
-            values: 0 (initial fitness score)
+        A list of models
     """
     timer.start()
-    population = {model_class():0 for i in range(pop_size)} 
+    population = [model_class() for i in range(pop_size)]
     timer.print_time("Initial population created.")
 
     return population
@@ -42,10 +40,9 @@ def select_two_models(population):
             for model1, model2 in select_two_models(population):
             #Do stuff with model1 and model2
     """
-    models = list(population.keys())
-    random.shuffle(models)
-    for i in range(0, len(models) - 1, 2):
-        yield models[i], models[i + 1]
+    random.shuffle(population)
+    for i in range(0, len(population) - 1, 2):
+        yield population[i], population[i + 1]
 
 def generate_food(food_size):
     """
@@ -60,35 +57,47 @@ def generate_food(food_size):
     return generation_food
     
 
-def survival_of_the_fittest(old_population, generation_food):
+def survival_of_the_fittest(population, generation_food):
     """
     Purpose:
         Feed the old population and updates its fitness.
     Input:
-        old_population: A population of models. Dictionary {model: fitness}
+        old_population: A population of models
         generation_food: The games to play. list of boards, which present is a list of lists. 
     Output:
-        The old population, now with fitness scores!)
+        a 'new' population, now with updated fitness scores!)
     """
     for model1, model2 in select_two_models(pop):
         #print(f"Selected models: {pop[model1]} vs {pop[model2]}")
         for board in generation_food:
             scores = [200, 280] #Temp just to be able to run
-            old_population[model1] += scores[0]
-            old_population[model2] += scores[1]
+            model1.fitness += scores[0]
+            model2.fitness += scores[1]
             #print_population(old_population)
             continue #TODO need line below, possibly will modification
             scores = game.play_game(model1, model2, board) #Does not exist. Need something like this to get them to play against each other.
     print("Population fitness has been updated.")
-    print_population(old_population)
-    return old_population
+    print_population(population)
+    return population
+
+def sort_population(population):
+    """
+    Purpose:
+        Sort the population
+    Input:
+        population
+    Output:
+        population, sorted
+    """
+    sorted_population = sorted(population, key=lambda model: model.fitness, reverse=True)
+    return sorted_population
 
 #Just for debugging
 def print_population(population):
-    for i, (model, fitness) in enumerate(population.items()):
-        print(f"Model {i}: Fitness: {fitness}")
+    for i, model in enumerate(population):
+        print(f"Model {i}: Fitness: {model.fitness}")
 
-def reproduce(model1, model2, model1_similarity):
+def reproduce_pair(model1, model2):
     """
     Purpose:
         Create a new model by combining weights from two parent models.
@@ -98,6 +107,7 @@ def reproduce(model1, model2, model1_similarity):
     Output:
         A new child model with mixed weights.
     """
+    global model_similarity
 
     #Get the parameters from the parents. A bit of machinery to flatten them. 
     params1 = torch.cat([p.data.view(-1) for p in model1.parameters()])
@@ -110,7 +120,7 @@ def reproduce(model1, model2, model1_similarity):
 
     #Figure out what parameters come from which parent.
     indices = torch.randperm(number_of_parameters)
-    split = int(model1_similarity * number_of_parameters)
+    split = int(MODEL_SIMILARITY * number_of_parameters)
     parent1_idx = indices[:split]
     parent2_idx = indices[split:]
 
@@ -149,8 +159,30 @@ def reproduce(model1, model2, model1_similarity):
 
     return child
 
-def fine_mates(old_population):
-    pass
+def reproduce_pop(population):
+    """
+    Purpose:
+        Create a new generation.
+    Input:
+        population (Note that it need not be sorted)
+    Output:
+        population, with the bottom network.DEATH_RATE members replaced by children from the above network.reproductive_floor.
+    """
+    global DEATH_RATE, REPRODUCTIVE_FLOOR
+    population = sort_population(population)
+
+    weakest_fit_to_reproduce = int(REPRODUCTIVE_FLOOR * len(population))
+
+    weakest_surviving_model = int(DEATH_RATE * len(population))
+    for i in range(-weakest_surviving_model, 0):
+        parent_indices = random.sample(range(weakest_fit_to_reproduce), 2)
+        new_child_member = reproduce_pair(population[parent_indices[0]], population[parent_indices[1]] )
+        population[i] = new_child_member
+
+    return population
+    
+    
+    
 
 #Proof of concept:
 pop = make_initial_population(population_size, model)
@@ -160,4 +192,12 @@ pop = make_initial_population(population_size, model)
 #     child = reproduce(model1, model2, 0.5)
 # timer.print_time("Iteratated population in pairs.")
 
-survival_of_the_fittest(pop, generate_food(food_size))
+population = survival_of_the_fittest(pop, generate_food(food_size))
+population = sort_population(population)
+
+print("Sorted population:")
+print_population(population)
+
+population = reproduce_pop(population)
+print("Reproduced population:")
+print_population(population)

@@ -22,6 +22,7 @@ class base_single_layer_model(nn.Module):
         super(base_single_layer_model, self).__init__()
         self.fc1 = nn.Linear(14, 16) 
         self.fc2 = nn.Linear(16, 6)
+        self.fitness = 0
 
 
     def forward(self, x):
