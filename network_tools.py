@@ -35,4 +35,4 @@ def run_model_on_random_inputs(model):
     for i,o in zip(inputs, outputs):
         print(f"{i} mapped to {o}")
 
-run_model_on_random_inputs(base_single_layer_model)
+#run_model_on_random_inputs(base_single_layer_model)

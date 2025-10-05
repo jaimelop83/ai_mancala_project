@@ -8,9 +8,12 @@ import random
 from timer import Timer
 from network import *
 from network_tools import random_board
+import numpy as np
+import cProfile
+import pstats
+import os
+import threading
 
-population_size = 10
-food_size = 3 #Number of boards/games each generation will play.
 timer = Timer()
 
 def make_initial_population(pop_size, model_class):
@@ -23,9 +26,7 @@ def make_initial_population(pop_size, model_class):
     Output:
         A list of models
     """
-    timer.start()
     population = [model_class() for i in range(pop_size)]
-    timer.print_time("Initial population created.")
 
     return population
 
@@ -67,7 +68,7 @@ def survival_of_the_fittest(population, generation_food):
     Output:
         a 'new' population, now with updated fitness scores!)
     """
-    for model1, model2 in select_two_models(pop):
+    for model1, model2 in select_two_models(population):
         #print(f"Selected models: {pop[model1]} vs {pop[model2]}")
         for board in generation_food:
             scores = [200, 280] #Temp just to be able to run
@@ -76,8 +77,8 @@ def survival_of_the_fittest(population, generation_food):
             #print_population(old_population)
             continue #TODO need line below, possibly will modification
             scores = game.play_game(model1, model2, board) #Does not exist. Need something like this to get them to play against each other.
-    print("Population fitness has been updated.")
-    print_population(population)
+    #print("Population fitness has been updated.")
+    #print_population(population)
     return population
 
 def sort_population(population):
@@ -107,97 +108,162 @@ def reproduce_pair(model1, model2):
     Output:
         A new child model with mixed weights.
     """
-    global model_similarity
+    global MODEL_SIMILARITY
 
-    #Get the parameters from the parents. A bit of machinery to flatten them. 
-    params1 = torch.cat([p.data.view(-1) for p in model1.parameters()])
-    params2 = torch.cat([p.data.view(-1) for p in model2.parameters()])
-    number_of_parameters = params1.numel()
-
-    #Make a child.
     child = type(model1)()
-    child_params = [0.]*number_of_parameters
 
-    #Figure out what parameters come from which parent.
-    indices = torch.randperm(number_of_parameters)
-    split = int(MODEL_SIMILARITY * number_of_parameters)
-    parent1_idx = indices[:split]
-    parent2_idx = indices[split:]
+    for p1, p2, p_child in zip(model1.parameters(), model2.parameters(), child.parameters()):
+        mask = torch.rand_like(p1) < MODEL_SIMILARITY
+        p_child.data.copy_(p1 * mask + p2 * (~mask))
 
-    #Reproduce
-    child_flat = params1.clone()
-    child_flat[parent2_idx] = params2[parent2_idx]
-
-    # Populate child weights how??
-    pointer = 0
-    for p in child.parameters():
-        num_params = p.numel()
-        # Copy the correct slice back into parameter shape
-        p.data = child_flat[pointer:pointer + num_params].view_as(p).clone()
-        pointer += num_params
-
-    
     if False: #Debugging code to make sure the child is actually a mix of the parents.
         params_child = torch.cat([p.data.view(-1) for p in child.parameters()])
         p1_count = 0
         p2_count = 0
-        for p1,p2,c in zip(params1, params2, params_child):
+        for p1,p2,c in zip(model1.get_flattened_parameters(), model2.get_flattened_parameters(), params_child):
             if not (p1 == c or p2 == c):
-                print(f"Error: Child parameter {c} does not match either parent {p1} or {p2}.")
+                #print(f"Error: Child parameter {c} does not match either parent {p1} or {p2}.")
                 assert(False)
             if p1 ==c:
                 p1_count += 1
-                print(".", end="")
+                #print(".", end="")
             if p2 == c:
                 p2_count += 1
-                print("*", end="")
+                #print("*", end="")
         tot = p1_count + p2_count
-        print(f"{indices=}")
-        print(f"\n{p1_count=} {p2_count=} {tot=}")
-        print(f"{split=}")
-        assert(False)
+        #print(f"{indices=}")
+        #print(f"\n{p1_count=} {p2_count=} {tot=}")
+        #print(f"{split=}")
+        #assert(False)
 
     return child
+
+#Presently unused (See threading in next function)
+def replace_child(population, index, weakest_fit_to_reproduce):
+    parent_indices = np.random.randint(weakest_fit_to_reproduce, len(population), size=2)
+    new_child_member = reproduce_pair(population[parent_indices[0]], population[parent_indices[1]] )
+    population[index] = new_child_member
+    return
 
 def reproduce_pop(population):
     """
     Purpose:
         Create a new generation.
     Input:
-        population (Note that it need not be sorted)
+        population (Note that it MUST be sorted beforehand)
     Output:
         population, with the bottom network.DEATH_RATE members replaced by children from the above network.reproductive_floor.
     """
     global DEATH_RATE, REPRODUCTIVE_FLOOR
-    population = sort_population(population)
 
     weakest_fit_to_reproduce = int(REPRODUCTIVE_FLOOR * len(population))
 
     weakest_surviving_model = int(DEATH_RATE * len(population))
     for i in range(-weakest_surviving_model, 0):
-        parent_indices = random.sample(range(weakest_fit_to_reproduce), 2)
+        parent_indices = np.random.randint(weakest_fit_to_reproduce, len(population), size=2)
         new_child_member = reproduce_pair(population[parent_indices[0]], population[parent_indices[1]] )
         population[i] = new_child_member
 
+        #An interesting idea ... but much slower?? Might just be threading overhead?
+        # threads = [None]*NUMBER_OF_THREADS
+        # for j in range(NUMBER_OF_THREADS):
+        #     if i + j < 0:
+        #         threads[j] = threading.Thread(target=replace_child, args=(population, i + j, weakest_fit_to_reproduce))
+        #         threads[j].start()
+        # for j in range(NUMBER_OF_THREADS):
+        #     if i + j < 0:
+        #         threads[j].join()
+
+    return population
+
+def reset_fitness(population):
+    """
+    Purpose:
+        Reset all fitness scores to 0.
+    Input:
+        population
+    Output: 
+        population, with all .fitness scores = 0
+    """
+    for model in population:
+        model.fitness = 0
     return population
     
-    
-    
+def evolve(population):
+    """
+    Purpose:
+        Perform a full evolution cycle - one iteration.
+    """
+    timer.start()
+    food = generate_food(FOOD_SIZE)
+    timer.print_time("Food generated.")
+
+    population = survival_of_the_fittest(population, food)
+    timer.print_time("Population competed.")
+
+    timer.start()
+    population = sort_population(population)
+    timer.print_time("Population sorted.")
+
+    timer.start()
+    population = reproduce_pop(population)   
+    timer.print_time("Population reproduced.")
+
+    timer.start()
+    population = reset_fitness(population)
+    timer.print_time("Population fitness reset.")
+
+    return population
 
 #Proof of concept:
-pop = make_initial_population(population_size, model)
+#pop = make_initial_population(POPULATION_SIZE, model)
 # timer.start()
 # for model1, model2 in select_two_models(pop):
 #     print(f"Selected models: {pop[model1]} vs {pop[model2]}")
 #     child = reproduce(model1, model2, 0.5)
 # timer.print_time("Iteratated population in pairs.")
 
-population = survival_of_the_fittest(pop, generate_food(food_size))
-population = sort_population(population)
+# population = survival_of_the_fittest(pop, generate_food(FOOD_SIZE))
+# population = sort_population(population)
 
-print("Sorted population:")
-print_population(population)
+# print("Sorted population:")
+# print_population(population)
 
-population = reproduce_pop(population)
-print("Reproduced population:")
-print_population(population)
+# population = reproduce_pop(population)
+# print("Reproduced population:")
+# print_population(population)
+
+
+
+def runner():
+    timer.start()
+    pop = make_initial_population(POPULATION_SIZE, model)
+    timer.print_time("Initial population created.")
+
+    for i in range(NUMBER_OF_GENERATIONS):
+        print(f"Generation {i} completed")
+        pop = evolve(pop)
+
+runner()
+
+# profiler = cProfile.Profile()
+# profiler.enable()
+# runner()
+# profiler.disable()
+# #cProfile.run('runner()')
+
+# stats = pstats.Stats(profiler)
+
+# # for func, stat in stats.stats.items():
+# #     filename, lineno, funcname = func
+# #     shortname = os.path.basename(filename)  # keep only the filename
+# #     stats.stats[(shortname, lineno, funcname)] = stats.stats.pop(func)
+
+# stats.sort_stats('tottime')
+# stats.dump_stats('profile_data')
+# with open("profile_data.txt", "w") as f:
+#     stats.stream = f
+#     stats.print_stats(50)
+#print_population(pop)
+    
+    

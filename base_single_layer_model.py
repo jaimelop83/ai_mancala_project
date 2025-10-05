@@ -16,6 +16,7 @@ Output layer:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.utils import parameters_to_vector
 
 class base_single_layer_model(nn.Module):
     def __init__(self):
@@ -23,7 +24,29 @@ class base_single_layer_model(nn.Module):
         self.fc1 = nn.Linear(14, 16) 
         self.fc2 = nn.Linear(16, 6)
         self.fitness = 0
+        self.flattened_parameters = None
 
+    def get_flattened_parameters(self):
+        #They need to be recomputed a bit, this will cache them.
+        if self.flattened_parameters is not None:
+            return self.flattened_parameters
+        else:
+            #self.flattened_parameters = torch.cat([param.data.view(-1) for param in self.parameters()]) #faster than flatten because it skips autograd... don't think that'll cause issues?
+            self.flattened_parameters = parameters_to_vector(self.parameters()) #Almost surely better... but is it slower?
+        return self.flattened_parameters
+
+    def set_flattened_parameters(self, flat_params):
+        """
+        Purpose:
+            Set the parameters of the model from a flattened tensor.
+        Input:
+            flat_params: A 1D tensor containing the new parameter values.
+        """
+        pointer = 0
+        for param in self.parameters():
+            numel = param.numel()
+            param.data = flat_params[pointer:pointer + numel].view_as(param).clone()
+            pointer += numel
 
     def forward(self, x):
         x = x.float()

@@ -9,20 +9,10 @@ Purpose:
 class Timer:
     def __init__(self):
         self.start_time = None
-        self.elapsed = 0
             
     def start(self):
-        if self.start_time is None:
-            self.start_time = time.time()
-
-    def stop(self):
-        if self.start_time is not None:
-            self.elapsed += time.time() - self.start_time
-            self.start_time = None
+        self.start_time = time.time()
 
     def print_time(self, message):
-        self.stop()
-        total = self.elapsed
-        if self.start_time is not None:
-            total += time.time() - self.start_time
-        print(f"{message}: {total:.4f} seconds")
+        total = time.time() - self.start_time
+        print(f"{total:05.2f}s: {message}")
