@@ -49,6 +49,8 @@ print(f"\t{MODEL_SIMILARITY=}")
 print(f"\t{FOOD_SIZE=}")
 print(f"\t{POPULATION_SIZE=}")
 print(f"\t{NUMBER_OF_GENERATIONS=}")
+print(f"\t{NUMBER_OF_THREADS=}")
+print(f"\t{SAVE_DIR=}")
 print(f"\t{seed=}")
 
 print("System Info:")
@@ -73,4 +75,4 @@ print("Evolution Info:")
 test_model = model()
 model_size = sum(p.numel() * p.element_size() for p in test_model.parameters())
 print(f"\t{model_size=:,} bytes")
-print(f"\tLargest reasonable population is thus: {ram // model_size:,}") #But keep it a good bit smaller! Perhaps max should be 1/2 or 1/3? 
+print(f"\tLargest reasonable population is thus: {ram // model_size:,}") #But keep it a good bit smaller! Perhaps max should be 1/2 or 1/3? TODO look at memory storage and make sure population is the dominant thing.

@@ -7,6 +7,7 @@ import torch
 import random
 from timer import Timer
 from network import *
+from game import Mancala
 from network_tools import random_board
 import numpy as np
 import cProfile
@@ -71,16 +72,13 @@ def survival_of_the_fittest(population, generation_food):
     for model1, model2 in select_two_models(population):
         #print(f"Selected models: {pop[model1]} vs {pop[model2]}")
         for board in generation_food:
-            scores = [200, 280] #Temp just to be able to run
-            model1.fitness += scores[0]
-            model2.fitness += scores[1]
-            #print_population(old_population)
-            continue #TODO need line below, possibly will modification
-            game = game(board)
+            #scores = [200, 280] #Temp just to be able to run
+            #model1.fitness += scores[0]
+            #model2.fitness += scores[1]
+            game = Mancala(board)
             game.play_game(model1, model2)
-            scores = game.get_score() #Does not exist. Need something like this to get them to play against each other.
-    #print("Population fitness has been updated.")
-    #print_population(population)
+            scores = game.get_score()
+            model1.fitness, model2.fitness = scores
     return population
 
 def sort_population(population):
@@ -102,7 +100,6 @@ def print_population(population):
     #    print(f"Model {i}: Fitness: {model.fitness}")
 
     print("\tPopulation Fitness Report")
-
     n = len(population)
     percentiles = [100, 99, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0]
     for p in percentiles:

@@ -1,10 +1,12 @@
+import random
+
 # Mancala game logic
 class Mancala:
     def __init__(self, board=None):
         # Board layout:
         # Indexes 0–5: Player 1 pits, 6: Player 1 store
         # Indexes 7–12: Player 2 pits, 13: Player 2 store
-        if board != None:
+        if board is not None:
             self.board = board
         else:
             self.board = [4] * 6 + [0] + [4] * 6 + [0]
@@ -84,10 +86,21 @@ class Mancala:
             self._sweep_remaining_stones()
         
     # model1(board) yields the move model1 chooses. 
-    def play_game(model1, model2):
+    def play_game(self, model1, model2):
         pass
 
     def get_score(self):
+
+        #Stand-in code so other things are operational
+        r = random.random()
+        a = random.randrange(0, 481, 10)
+        b = 480 - a
+        if r < 0.25: return (-10000,a)
+        if r < 0.5: return (b,-10000)
+        elif r < 0.52: return (10000+max(a,b), min(a,b))
+        elif r < 0.52: return (min(a,b), 10000+max(a,b))
+        return (a, b)
+
         return (self.board[6], self.board[13])
 
     def print_board(self):
