@@ -13,6 +13,8 @@ import torch.nn.functional as F
 from torch.nn.utils import parameters_to_vector
 
 class base_single_layer_model(nn.Module):
+    model_name = "Basic_16"
+
     def __init__(self):
         super(base_single_layer_model, self).__init__()
         self.fc1 = nn.Linear(14, 16) 

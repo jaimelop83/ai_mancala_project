@@ -13,6 +13,6 @@ class Timer:
     def start(self):
         self.start_time = time.time()
 
-    def print_time(self, message):
+    def print_time(self, message, start="", end="\n"):
         total = time.time() - self.start_time
-        print(f"{total:05.2f}s: {message}")
+        print(f"{start}[{total:05.2f} {message}]", end=end)

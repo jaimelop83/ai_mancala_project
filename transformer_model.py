@@ -11,6 +11,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class TinyTransformerModel(nn.Module):
+    model_name = "Transformer"
+
     #Fixed: num_inputs, num_actions, vocab_size
     #Mutable: d_model, nhead, num_layers
     def __init__(self, num_inputs=14, num_actions=6, vocab_size=49, d_model=32, nhead=4, num_layers=1):

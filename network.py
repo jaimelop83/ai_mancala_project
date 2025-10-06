@@ -10,6 +10,7 @@ import psutil
 
 seed = 49
 torch.manual_seed(seed)
+torch.set_grad_enabled(False) #.backward is never used
 
 
 #Changing this model will change it everywhere else: nothing should import models directly, use from network import model. 
@@ -37,7 +38,8 @@ FOOD_SIZE = 3 #Number of boards/games each generation will play.
 POPULATION_SIZE = 10000 #Number of models in the population #Around 10,000 is what starts to take nontrivial time on my cpu.
 NUMBER_OF_GENERATIONS = 3 #Number of generations to evolve
 
-NUMBER_OF_THREADS = 8 
+NUMBER_OF_THREADS = 8 #Currently unused
+SAVE_DIR = "recent_models" #The top 10 will be saved here AND OVERWRITTEN EVERY TIME IT IS RUN
 
 print("Hyperparameters:")
 print(f"\t{DEATH_RATE=}")

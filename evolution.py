@@ -97,8 +97,18 @@ def sort_population(population):
 
 #Just for debugging
 def print_population(population):
-    for i, model in enumerate(population):
-        print(f"Model {i}: Fitness: {model.fitness}")
+    #Printed everything
+    #for i, model in enumerate(population):
+    #    print(f"Model {i}: Fitness: {model.fitness}")
+
+    print("\tPopulation Fitness Report")
+
+    n = len(population)
+    percentiles = [100, 99, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0]
+    for p in percentiles:
+        idx =int( (100-p)/100 * (n-1) )
+        fitness = population[idx].fitness
+        print(f"\t\t{p:>3}%:\t{fitness}")
 
 def reproduce_pair(model1, model2):
     """
@@ -190,30 +200,46 @@ def reset_fitness(population):
     for model in population:
         model.fitness = 0
     return population
+
+def save_best_models(population, generation):
+    global model
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    folder = os.path.join(SAVE_DIR, model.model_name)
+    os.makedirs(folder, exist_ok=True)
+
+    for i, model in enumerate(population[:10]):
+        filename = os.path.join(folder, f"gen_{generation}_model_{i+1}.pt")
+        torch.save(model.state_dict(), filename)
     
-def evolve(population):
+def evolve(population, generation):
     """
     Purpose:
         Perform a full evolution cycle - one iteration.
     """
     timer.start()
     food = generate_food(FOOD_SIZE)
-    timer.print_time("Food generated.")
+    timer.print_time("Food", start="\t", end=" ")
 
     population = survival_of_the_fittest(population, food)
-    timer.print_time("Population competed.")
+    timer.print_time("Pop", end=" ")
 
     timer.start()
     population = sort_population(population)
-    timer.print_time("Population sorted.")
+    timer.print_time("Sort", end= " ")
+
+    timer.start()
+    save_best_models(population, generation)
+    timer.print_time("Saved")
+
+    print_population(population)
 
     timer.start()
     population = reproduce_pop(population)   
-    timer.print_time("Population reproduced.")
+    timer.print_time("Repr", start="\t", end=" ")
 
     timer.start()
     population = reset_fitness(population)
-    timer.print_time("Population fitness reset.")
+    timer.print_time("Reset")
 
     return population
 
@@ -239,12 +265,16 @@ def evolve(population):
 
 def runner():
     timer.start()
-    pop = make_initial_population(POPULATION_SIZE, model)
-    timer.print_time("Initial population created.")
+    population = make_initial_population(POPULATION_SIZE, model)
+    timer.print_time("Initial population created.", start="\t")
 
     for i in range(NUMBER_OF_GENERATIONS):
-        print(f"Generation {i} completed")
-        pop = evolve(pop)
+        print(f"\nGeneration {i} completed")
+        population = evolve(population, i)
+
+        
+
+
 
 runner()
 
