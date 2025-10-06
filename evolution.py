@@ -78,7 +78,9 @@ def survival_of_the_fittest(population, generation_food):
             game = Mancala(board)
             game.play_game(model1, model2)
             scores = game.get_score()
-            model1.fitness, model2.fitness = scores
+            model1.fitness += scores[0]
+            model2.fitness += scores[1]
+
     return population
 
 def sort_population(population):
