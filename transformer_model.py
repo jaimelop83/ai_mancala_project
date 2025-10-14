@@ -9,8 +9,9 @@ Internal layers:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from mancala_model import mancala_model
 
-class TinyTransformerModel(nn.Module):
+class TinyTransformerModel(mancala_model):
     model_name = "Transformer"
 
     #Fixed: num_inputs, num_actions, vocab_size

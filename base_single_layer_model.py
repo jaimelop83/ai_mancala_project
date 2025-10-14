@@ -11,8 +11,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import parameters_to_vector
+from mancala_model import mancala_model
 
-class base_single_layer_model(nn.Module):
+class base_single_layer_model(mancala_model):
     model_name = "Basic_16"
 
     def __init__(self):
@@ -37,4 +38,6 @@ class base_single_layer_model(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return torch.argmax(x, dim=1)
+    
+
     
