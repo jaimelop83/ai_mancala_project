@@ -142,6 +142,8 @@ class Mancala:
         #Game finished with an illegal move, one bin recieved a -1000. Do not award winning points.
         if p1_score < 0 or p2_score < 0:
              pass
+        if p1_score == 0 and p2_score == 0:
+            pass
         #Award winning points
         elif p1_score > p2_score:
             p1_score += 10000
