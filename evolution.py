@@ -317,7 +317,12 @@ def check_for_winners(population):
     for model in population:
         if model.fitness > 10000:
             filename = os.path.join(SAVE_DIR, "winners", f"winner_{number_of_winners}.pt")
-            torch.save(model.state_dict(), filename)
+            try:
+                torch.save(model.state_dict(), filename)
+            except RuntimeError as e:
+                print("Unusual error: Torch had trouble saving. Ignoring it.")
+                print(e)
+                print(traceback.format_exc())
             number_of_winners += 1
     return
 
@@ -402,7 +407,26 @@ def evolve(population, generation):
 # print_population(population)
 
 
+def save_hyperparameters():
+    parameters = "Hyperparameters:\n"
+    parameters += f"\t{model.model_name=}\n"
+    parameters += f"\t{DEATH_RATE=}\n"
+    parameters += f"\t{REPRODUCTIVE_FLOOR=}\n"
+    parameters += f"\t{MUTATION_RATE=}\n"
+    parameters += f"\t{MUTATION_AMOUNT=}\n"
+    parameters += f"\t{FITNESS_DECAY_RATE=}\n"
+    parameters += f"\t{MODEL_SIMILARITY=}\n"
+    parameters += f"\t{FOOD_SIZE=}\n"
+    parameters += f"\t{POPULATION_SIZE=}\n"
+    parameters += f"\t{NUMBER_OF_GENERATIONS=}\n"
+    parameters += f"\t{NUMBER_OF_THREADS=}\n"
+    parameters += f"\t{SAVE_DIR=}\n"
+    parameters += f"\t{seed=}"
 
+    file_name = os.path.join(SAVE_DIR, "hyperparameters.txt")
+    with open(file_name, 'w', ) as file:
+        file.write(parameters)
+    return
 
 
 
@@ -425,9 +449,24 @@ def runner():
         print(e)
         print(traceback.format_exc())
     finally:
-        save_population(population)
-        export_fitness_log()
-        print("\nExports complete.")
+        try:
+            save_population(population)
+            export_fitness_log()
+            save_hyperparameters()
+            print_population(population)
+            print("\nExports complete.")
+        except:
+            print("\nHold your horses...")
+            export_fitness_log()
+            save_population(population)
+            save_hyperparameters()
+            print_population(population)
+            print("\nExports complete.")
+            
+
+
+
+
 
         
 

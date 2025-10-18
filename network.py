@@ -24,27 +24,29 @@ Internal layers:
 Output layer:
     1 value in [0,5] representing the hole to choose.
 """
-from base_single_layer_model import base_single_layer_model as model
+#from base_single_layer_model import base_single_layer_model as model
 #from transformer_model import TinyTransformerModel as model
+from three_layer_model import three_layer_model as model
 
 #Hyperparameters
 DEATH_RATE = 0.50 #This percent die every generation
 REPRODUCTIVE_FLOOR = .9 #Above this precent in fitness, reproduces (0.85 = top 15% can reproduce)
-MUTATION_RATE = 0.2 #Mutants to make each generation 
-MUTATION_AMOUNT = 0.1 #Weights to randomize change each mutant
+MUTATION_RATE = 0.5 #Mutants to make each generation 
+MUTATION_AMOUNT = 0.05 #Weights to randomize change each mutant
 #NUMBER_PROTECTED = 25 #The number of models that are protected from generation to generation - The best ones.
 FITNESS_DECAY_RATE = 0.9
 
 MODEL_SIMILARITY = 0.50 #Percent of parameters to take from model1 when reproducing
 
-FOOD_SIZE = 4 #Number of boards/games each generation will play.
-POPULATION_SIZE = 3000 #Number of models in the population #Around 10,000 is what starts to take nontrivial time on my cpu.
-NUMBER_OF_GENERATIONS = 5000 #Number of generations to evolve
+FOOD_SIZE = 5 #Number of boards/games each generation will play.
+POPULATION_SIZE = 1000 #Number of models in the population #Around 10,000 is what starts to take nontrivial time on my cpu.
+NUMBER_OF_GENERATIONS = 20000 #Number of generations to evolve
 
 NUMBER_OF_THREADS = 8 #Currently unused
 SAVE_DIR = "recent_models" #The top 10 will be saved here AND OVERWRITTEN EVERY TIME IT IS RUN
 
 print("Hyperparameters:")
+print(f"\t{model.model_name=}")
 print(f"\t{DEATH_RATE=}")
 print(f"\t{REPRODUCTIVE_FLOOR=}")
 print(f"\t{MUTATION_RATE=}")
@@ -57,6 +59,7 @@ print(f"\t{NUMBER_OF_GENERATIONS=}")
 print(f"\t{NUMBER_OF_THREADS=}")
 print(f"\t{SAVE_DIR=}")
 print(f"\t{seed=}")
+
 
 print("System Info:")
 if torch.cuda.is_available():

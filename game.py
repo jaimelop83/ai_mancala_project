@@ -145,8 +145,10 @@ class Mancala:
         #Award winning points
         elif p1_score > p2_score:
             p1_score += 10000
+            p2_score += 1000
         elif p2_score > p1_score:
             p2_score += 10000
+            p1_score += 1000
         elif p1_score == p2_score:
             p1_score += 10000/2
             p2_score += 10000/2
