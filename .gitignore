@@ -11,6 +11,8 @@ htmlcov/
 .noseids
 .pytest_cache/
 .cache
+profile_data
+profile_data.txt
 
 # IDEs and editors
 .vscode/

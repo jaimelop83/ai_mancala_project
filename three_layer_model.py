@@ -31,6 +31,11 @@ class three_layer_model(mancala_model):
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
         x = self.fc4(x)
+        #return torch.argmax(x, dim=1)
+
+        #For batched runs. 
+        if x.ndim == 1:
+            return torch.argmax(x)
         return torch.argmax(x, dim=1)
     
 
