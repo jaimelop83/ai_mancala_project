@@ -93,11 +93,12 @@ class Mancala:
         #move = model1(torch.tensor(self.board).unsqueeze(0))
         #final_score = [None, 0,0] #1-indexed
         number_of_moves = 0
+
         while True:
             if self.current_player == 1:
                 move = model1.make_move(self.board)
             else:
-                temp_board = [self.board[(x+7)%14] for x in self.board]
+                temp_board = [self.board[(i+7)%14] for i in range(14)]
                 move = model2.make_move(temp_board)
                 move = move + 7
             if move not in self.get_legal_moves():
@@ -105,7 +106,7 @@ class Mancala:
                 #final_score[1] = self.get_score()[0] * 10
                 #final_score[1] = self.get_score()[1] * 10
                 #final_score[self.current_player] -= 10000
-                self.board[7*self.current_player-1] -= 1000 #1->6 & 2->13
+                self.board[7*self.current_player-1] -= -1000  # f(x)=7x-1 gives 1->6 & 2->13.
                 #final_score[3  - self.current_player] += self.get_score()[2  - self.current_player] * 10
                 break
             #print(f"\t[{number_of_moves}] Player {self.current_player} makes move {move}")

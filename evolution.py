@@ -84,6 +84,12 @@ def survival_of_the_fittest(population, generation_food):
             #print(f"\t\tScores added: {scores}")
             model1.fitness += scores[0]
             model2.fitness += scores[1]
+
+            #Ensure illegal moves are negative, not just a penalty
+            if scores[0] < 0:
+                model1.fitness = min(model1.fitness, -10000)
+            if scores[1] < 0:
+                model2.fitness = min(model2.fitness, -10000)
     #print()
     return population
 
@@ -286,7 +292,7 @@ def save_best_models(population, generation):
     folder = os.path.join(SAVE_DIR, model.model_name)
     os.makedirs(folder, exist_ok=True)
 
-    for i, model in enumerate(population[:10]):
+    for i, model in enumerate(population[:1]):
         filename = os.path.join(folder, f"gen_{generation}_model_{i+1}.pt")
         torch.save(model.state_dict(), filename)
 
@@ -356,6 +362,7 @@ def evolve(population, generation):
     #timer.print_time("Food", start="\t", end=" ")
     food = FOOD_SIZE
 
+    timer.start()
     population = survival_of_the_fittest(population, food)
     timer.print_time("Pop", end=" ")
 
@@ -372,7 +379,7 @@ def evolve(population, generation):
 
     timer.start()
     log_top_fitness(population)
-    check_for_winners(population)
+    #check_for_winners(population)
     timer.print_time("Archiving", end="")
 
     timer.start()
@@ -433,12 +440,12 @@ def save_hyperparameters():
 def runner():
     try:
         timer.start()
-        if True:
+        if False:
             population = make_initial_population(POPULATION_SIZE, model)
         else:
             population = load_population(model)
             print("Old population loaded")
-        timer.print_time("Initial population created.", start="\t")
+        timer.print_time("Initial population.", start="\t")
 
         for i in range(NUMBER_OF_GENERATIONS):
             population = evolve(population, i)
@@ -453,6 +460,7 @@ def runner():
             save_population(population)
             export_fitness_log()
             save_hyperparameters()
+            population = sort_population(population)
             print_population(population)
             print("\nExports complete.")
         except:
@@ -460,8 +468,9 @@ def runner():
             export_fitness_log()
             save_population(population)
             save_hyperparameters()
+            population = sort_population(population)
             print_population(population)
-            print("\nExports complete.")
+            print("\nExports completed.")
             
 
 
@@ -472,7 +481,7 @@ def runner():
 
 
 
-runner()
+# runner()
 
 # profiler = cProfile.Profile()
 # profiler.enable()

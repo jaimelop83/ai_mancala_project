@@ -14,7 +14,7 @@ from torch.nn.utils import parameters_to_vector
 from mancala_model import mancala_model
 
 class base_single_layer_model(mancala_model):
-    model_name = "Basic_16"
+    model_name = "Basic_1_layer"
 
     def __init__(self):
         super(base_single_layer_model, self).__init__()
