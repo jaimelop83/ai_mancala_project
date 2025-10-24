@@ -106,7 +106,7 @@ class Mancala:
                 #final_score[1] = self.get_score()[0] * 10
                 #final_score[1] = self.get_score()[1] * 10
                 #final_score[self.current_player] -= 10000
-                self.board[7*self.current_player-1] -= -1000  # f(x)=7x-1 gives 1->6 & 2->13.
+                self.board[7*self.current_player-1] += -1000  # f(x)=7x-1 gives 1->6 & 2->13.
                 #final_score[3  - self.current_player] += self.get_score()[2  - self.current_player] * 10
                 break
             #print(f"\t[{number_of_moves}] Player {self.current_player} makes move {move}")
@@ -122,6 +122,7 @@ class Mancala:
                 print("Something went wrong, 100 moves is probably impossible")
                 assert(False)
             #print()
+        #self.print_board()
         return
         #self.print_board()
 
@@ -143,16 +144,15 @@ class Mancala:
         #Game finished with an illegal move, one bin recieved a -1000. Do not award winning points.
         if p1_score < 0 or p2_score < 0:
              pass
-        if p1_score == 0 and p2_score == 0:
+        elif p1_score == 0 and p2_score == 0: #Total shut out no bonus points
             pass
-        #Award winning points
-        elif p1_score > p2_score:
+        elif p1_score > p2_score: #Award winning bonus  points
             p1_score += 10000
             p2_score += 1000
-        elif p2_score > p1_score:
+        elif p2_score > p1_score: #Award winning bonus points
             p2_score += 10000
             p1_score += 1000
-        elif p1_score == p2_score:
+        elif p1_score == p2_score: #Split winning bonus points
             p1_score += 10000/2
             p2_score += 10000/2
         #print(f"{self.board=}")

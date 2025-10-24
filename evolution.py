@@ -64,7 +64,7 @@ def generate_food(food_size):
     return generation_food
     
 
-def survival_of_the_fittest(population, generation_food):
+def survival_of_the_fittest(population, generation_food=FOOD_SIZE):
     """
     Purpose:
         Feed the old population and updates its fitness.
@@ -76,20 +76,20 @@ def survival_of_the_fittest(population, generation_food):
         a 'new' population, now with updated fitness scores!)
     """
     for i in range(generation_food):
-        print(".", end="")
+        #print(".", end="")
         for model1, model2 in select_two_models(population): #This could probably be faster with a np.randperm
             game = Mancala()
             game.play_game(model1, model2)
             scores = game.get_score()
-            #print(f"\t\tScores added: {scores}")
+            #print(f"\tScores added: {scores}")
             model1.fitness += scores[0]
             model2.fitness += scores[1]
 
             #Ensure illegal moves are negative, not just a penalty
             if scores[0] < 0:
-                model1.fitness = min(model1.fitness, -10000)
+                model1.fitness = min(model1.fitness, -10000*FOOD_SIZE)
             if scores[1] < 0:
-                model2.fitness = min(model2.fitness, -10000)
+                model2.fitness = min(model2.fitness, -10000*FOOD_SIZE)
     #print()
     return population
 
@@ -302,7 +302,9 @@ def log_top_fitness(population):
         Record fitness of top 10 models for this generation.
         """
     top_10 = [model.fitness for model in population[:10]]
+    #top_3_rands = [model.random_tendency for model in population[:3]]
     fitness_log.append(top_10)
+    #fitness_log.append(top_3_rands)
 
 def export_fitness_log(filename=os.path.join("recent_models","fitness_log.csv")):
     with open(filename, "w", newline="") as f:
@@ -364,6 +366,13 @@ def evolve(population, generation):
 
     timer.start()
     population = survival_of_the_fittest(population, food)
+    #threads = []
+    #for _ in range(FOOD_SIZE):
+    #    t = threading.Thread(target=survival_of_the_fittest, args=(population,))
+    #    threads.append(t)
+    #    t.start()
+    #for t in threads:
+    #    t.join()
     timer.print_time("Pop", end=" ")
 
     timer.start()
@@ -440,7 +449,7 @@ def save_hyperparameters():
 def runner():
     try:
         timer.start()
-        if False:
+        if True:
             population = make_initial_population(POPULATION_SIZE, model)
         else:
             population = load_population(model)

@@ -26,7 +26,11 @@ class two_layer_model(mancala_model):
         self.flattened_parameters = None
 
         #The ratio of moves to choose randomly
-        self.random_tendency = random.random() 
+        #self.random_tendency = random.random()
+        if random.random() < 0.01:
+            self.faker = True
+        else:
+            self.faker = False
 
     def forward(self, x):
         # print(f"{x=}")
@@ -34,7 +38,9 @@ class two_layer_model(mancala_model):
         #print(f"{x[0,2]=}")
         #print(f"{x[0,2]!=0=}")
         #print(f"{type(x[0,2])=}")
-        if random.random() < self.random_tendency:
+        #if self.random_tendency > 0.5 and random.random() < self.random_tendency:
+        if self.faker:
+            #print(".", end="")
             legal_moves = [i for i in range(6) if x[0,i] != 0]
             #print(f"{torch.tensor(random.choice(legal_moves))}", end="")
             if legal_moves:
@@ -44,7 +50,7 @@ class two_layer_model(mancala_model):
                 print("This should have never occured!")
                 assert(False)
                 return torch.tensor(0)
-
+        #print("*", end="")
         x = x.float()
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
