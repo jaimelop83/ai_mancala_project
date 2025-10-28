@@ -6,6 +6,9 @@ class Stats:
         self.p1_wins = 0
         self.p2_wins = 0
         self.ties = 0
+        self.moves_per_game = []
+        self.illegal_per_game = []
+        self.winner_per_game = []
 
     def snapshot(self):
         return {
@@ -22,7 +25,5 @@ GLOBAL_STATS = Stats()
 def print_stats(prefix="Run stats"):
     s = GLOBAL_STATS.snapshot()
     print(
-        f"{prefix}: "
-        f"games={s['games']}  moves={s['moves']}  illegal={s['illegal_moves']}  "
-        f"p1_wins={s['p1_wins']}  p2_wins={s['p2_wins']}  ties={s['ties']}"
+        f"{prefix}: games={s['games']}  moves={s['moves']}  illegal={s['illegal_moves']} p1_wins={s['p1_wins']}  p2_wins={s['p2_wins']}  ties={s['ties']}"
     )

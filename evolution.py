@@ -90,11 +90,16 @@ def survival_of_the_fittest(population, generation_food=FOOD_SIZE):
             # wins / ties by comparing scores
             if scores[0] > scores[1]:
                 mancala_game.GLOBAL_STATS.p1_wins += 1
+                mancala_game.GLOBAL_STATS.winner.append('P1')
             elif scores[1] > scores[0]:
                 mancala_game.GLOBAL_STATS.p2_wins += 1
+                mancala_game.GLOBAL_STATS.winner.append('P2')
             else:
                 mancala_game.GLOBAL_STATS.ties += 1
+                mancala_game.GLOBAL_STATS.winner.append('Tie')
             #print(f"\tScores added: {scores}")
+            illegal_count_this_game = int(scores[0] < 0) + int(scores[1] < 0)
+            mancala_game.GLOBAL_STATS.illegal_moves_per_game.append(illegal_count_this_game)
             model1.fitness += scores[0]
             model2.fitness += scores[1]
 
@@ -472,6 +477,14 @@ def runner():
         for i in range(NUMBER_OF_GENERATIONS):
             population = evolve(population, i)
             game.print_stats(prefix=f"Generation {i} stats")
+            game.GLOBAL_STATS.global_moves.append(sum(game.GLOBAL_STATS.moves_game))
+            game.GLOBAL_STATS.global_illagal_moves.append(sum(game.GLOBAL_STATS.illegal_moves_per_game))
+            w = game.GLOBAL_STATS.winner
+            game.GLOBAL_STATS.global_winner.append((
+                w.count('P1'),
+                w.count('P2'),
+                w.count('Tie')
+            ))
             game.GLOBAL_STATS.reset()
             #print(f"Generation {i} completed")
             print(f"[{i}]", end="")
@@ -495,6 +508,21 @@ def runner():
             population = sort_population(population)
             print_population(population)
             print("\nExports completed.")
+    try:
+        report_dir = os.path.join(SAVE_DIR, "")
+        os.makedirs(report_dir, exist_ok=True)
+        csv_path = os.path.join(report_dir, "trainingStats.csv")
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["generation", "moves_sum", "illegal_sum", "p1_wins", "p2_wins", "ties"])
+            for generation in range(len(game.GLOBAL_STATS.global_moves)):
+                moves_sum = game.GLOBAL_STATS.global_moves[generation]
+                illegal_sum = game.GLOBAL_STATS.global_illagal_moves[generation]
+                p1_wins, p2_wins, ties = game.GLOBAL_STATS.global_winner[generation]
+                writer.writerow([generation, moves_sum, illegal_sum, p1_wins, p2_wins, ties])
+        print(f"Saved CSV")
+    except:
+        print("CSV export failed")
             
 
 

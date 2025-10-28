@@ -8,6 +8,12 @@ class Stats:
         self.p1_wins = 0
         self.p2_wins = 0
         self.ties = 0
+        self.moves_game = []
+        self.illegal_moves_per_game = []
+        self.winner = []
+        self.global_moves = []
+        self.global_illagal_moves = []
+        self.global_winner = []
 
     def reset(self):
         self.total_games = 0
@@ -16,6 +22,9 @@ class Stats:
         self.p1_wins = 0
         self.p2_wins = 0
         self.ties = 0
+        self.moves_game.clear()
+        self.illegal_moves_per_game.clear()
+        self.winner.clear()
 
     def snapshot(self):
         return {
@@ -161,6 +170,7 @@ class Mancala:
                 assert(False)
             #print()
         #self.print_board()
+        GLOBAL_STATS.moves_game.append(number_of_moves)
         return
         #self.print_board()
 
