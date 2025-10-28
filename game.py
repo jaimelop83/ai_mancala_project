@@ -1,5 +1,42 @@
 import random
 
+class Stats:
+    def __init__(self):
+        self.total_games = 0
+        self.total_moves = 0
+        self.illegal_moves = 0
+        self.p1_wins = 0
+        self.p2_wins = 0
+        self.ties = 0
+
+    def reset(self):
+        self.total_games = 0
+        self.total_moves = 0
+        self.illegal_moves = 0
+        self.p1_wins = 0
+        self.p2_wins = 0
+        self.ties = 0
+
+    def snapshot(self):
+        return {
+            "games": self.total_games,
+            "moves": self.total_moves,
+            "illegal_moves": self.illegal_moves,
+            "p1_wins": self.p1_wins,
+            "p2_wins": self.p2_wins,
+            "ties": self.ties,
+        }
+
+GLOBAL_STATS = Stats()
+
+def print_stats(prefix=""):
+    s = GLOBAL_STATS.snapshot()
+    print(
+        f"{prefix}: "
+        f"games={s['games']}  moves={s['moves']}  illegal={s['illegal_moves']}  "
+        f"p1_wins={s['p1_wins']}  p2_wins={s['p2_wins']}  ties={s['ties']}"
+    )
+
 # Mancala game logic
 class Mancala:
     def __init__(self, board=None):
@@ -37,7 +74,7 @@ class Mancala:
     def apply_move(self, pit_index):
         if self.board[pit_index] == 0:
             raise ValueError("Cannot move from an empty pit")
-
+        GLOBAL_STATS.total_moves += 1
         stones = self.board[pit_index]
         self.board[pit_index] = 0
         index = pit_index
@@ -102,6 +139,7 @@ class Mancala:
                 move = model2.make_move(temp_board)
                 move = move + 7
             if move not in self.get_legal_moves():
+                GLOBAL_STATS.illegal_moves += 1
                 #print(f"\t[{number_of_moves}]Game is over with player {self.current_player} making an illegal move: {move}")
                 #final_score[1] = self.get_score()[0] * 10
                 #final_score[1] = self.get_score()[1] * 10

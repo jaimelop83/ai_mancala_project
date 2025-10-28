@@ -17,6 +17,7 @@ import threading
 import csv
 import copy
 import traceback
+import game as mancala_game
 
 timer = Timer()
 fitness_log = []
@@ -81,6 +82,18 @@ def survival_of_the_fittest(population, generation_food=FOOD_SIZE):
             game = Mancala()
             game.play_game(model1, model2)
             scores = game.get_score()
+            mancala_game.GLOBAL_STATS.total_games += 1
+            if scores[0] < 0:
+                mancala_game.GLOBAL_STATS.illegal_moves += 1
+            if scores[1] < 0:
+                mancala_game.GLOBAL_STATS.illegal_moves += 1
+            # wins / ties by comparing scores
+            if scores[0] > scores[1]:
+                mancala_game.GLOBAL_STATS.p1_wins += 1
+            elif scores[1] > scores[0]:
+                mancala_game.GLOBAL_STATS.p2_wins += 1
+            else:
+                mancala_game.GLOBAL_STATS.ties += 1
             #print(f"\tScores added: {scores}")
             model1.fitness += scores[0]
             model2.fitness += scores[1]
@@ -458,6 +471,8 @@ def runner():
 
         for i in range(NUMBER_OF_GENERATIONS):
             population = evolve(population, i)
+            game.print_stats(prefix=f"Generation {i} stats")
+            game.GLOBAL_STATS.reset()
             #print(f"Generation {i} completed")
             print(f"[{i}]", end="")
     except Exception as e:
