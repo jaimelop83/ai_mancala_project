@@ -41,7 +41,7 @@ MODEL_SIMILARITY = 0.50 #Percent of parameters to take from model1 when reproduc
 
 FOOD_SIZE = 4 #Number of boards/games each generation will play.
 POPULATION_SIZE = 5000 #Number of models in the population #Around 10,000 is what starts to take nontrivial time on my cpu.
-NUMBER_OF_GENERATIONS = 50000 #Number of generations to evolve
+NUMBER_OF_GENERATIONS = 5000 #Number of generations to evolve
 
 NUMBER_OF_THREADS = 8 #Currently unused
 SAVE_DIR = "recent_models" #The top 10 will be saved here AND OVERWRITTEN EVERY TIME IT IS RUN
@@ -81,7 +81,29 @@ else:
         print("Failed to determine if the system has a GPU")
 
 print("Evolution Info:")
+# Set up device and multi-GPU handling
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+    if torch.cuda.device_count() > 1:
+        print(f"\tUsing {torch.cuda.device_count()} GPUs via DataParallel.")
+    else:
+        print("\tUsing single GPU.")
+else:
+    device = torch.device("cpu")
+    print("\tCUDA not available — using CPU.")
+
 test_model = model()
+# Move model to GPU(s)
+if torch.cuda.is_available():
+    if torch.cuda.device_count() > 1:
+        test_model = torch.nn.DataParallel(test_model)
+        print(f"\tModel wrapped for {torch.cuda.device_count()} GPUs.")
+    test_model = test_model.to(device)
+    print(f"\tModel moved to device: {device}")
+else:
+    print("\tModel running on CPU.")
+
+# Calculate model size    
 model_size = sum(p.numel() * p.element_size() for p in test_model.parameters())
 print(f"\t{model_size=:,} bytes")
 print(f"\tLargest reasonable population is thus: {ram // model_size:,}") #But keep it a good bit smaller! Perhaps max should be 1/2 or 1/3? TODO look at memory storage and make sure population is the dominant thing.
